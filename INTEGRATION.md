@@ -1,16 +1,13 @@
-# Application integration — required before production launch
+# Growth Strategy Applications — Formspree
 
-The redesign is preview-only. Keep APPLICATION_ENDPOINT empty until a real backend is configured and tested. The current production homepage and CNAME are preserved while the redesign is on this branch. A clearly labeled preview is available at /preview-redesign/.
+Provider endpoint: https://formspree.io/f/mdeeebkl
 
-## Required destination
-Provide a CRM webhook or secure application API controlled by Desert Standard Media. The frontend expects an HTTPS endpoint accepting JSON POST requests with Content-Type: application/json and Idempotency-Key. Permit CORS from https://desertstandardmedia.com (and www if used), including OPTIONS, POST and those headers. Never put API secrets in browser code.
+The website submits all four steps as FormData with Accept: application/json. Success is displayed only after an HTTP success response with Formspree's ok:true acknowledgement. Invalid JSON, rejected responses, network failures, and a 25-second timeout leave answers intact and offer retry. There is no scheduling integration.
 
-Respond with a 2xx JSON object {"saved":true,"applicationId":"durable-record-id"} only after durable storage. Return the same record on retries with the same idempotency key; enforce uniqueness server-side. A CRM acknowledgement that only queues data is insufficient without durable acceptance. Validate required fields and allowed choices server-side; sanitize text, enforce length limits, rate-limit abuse, and add bot protection appropriate to the provider. Do not collect patient or medical information.
+The in-flight guard disables submit, Back, Close and current inputs; a completed application cannot be submitted again in the same open page. applicationReference is retained across unchanged retries for tracing, but Formspree server-side idempotency is not assumed. An uncertain timeout followed by retry can produce more than one provider record. No private API credentials are embedded in code.
 
-Fields: fullName, businessName, role, websiteOrInstagram, cityState, servicesToPromote, primaryGoal, marketingChallenge, paidAdsStatus, currentMonthlySpend, plannedMonthlyBudget, managementFeeReadiness, startTimeline, email, phone, preferredContactMethod, additionalDetails.
+The privacy notice names Formspree and explains business-fit review and follow-up, with no marketing-email subscription. Personal answers remain in page memory until submitted; they are not written to localStorage. Do not collect patient or medical information.
 
-## Configure and verify
-Set APPLICATION_ENDPOINT in index.html. Verify a test application appears in the actual destination and only then test success rendering. Verify retries with the same key create only one record; non-2xx, invalid JSON, timeouts and unconfirmed saves retain all answers. Finalize provider-specific privacy disclosures and retention/access settings before collecting real applications. No scheduling button is included because no scheduling integration was provided.
+Owner settings: verify the Formspree notification email and inspect the dashboard for the application marked TEST — Website Integration. Configure domain restrictions and appropriate spam protection in Formspree without disabling active anti-abuse controls. Provider plan limits and archive retention apply. Never delete genuine applications when cleaning up test data.
 
-## Motion and accessibility
-Canvas terrain has CSS sculpture/static gradients as fallback, pauses offscreen, caps pixel ratio and respects reduced motion. Native dialog provides focus containment and Escape dismissal; answers persist while navigating or closing/reopening, only in page memory. No personal answers are written to localStorage. Refreshing discards them.
+Checks: automated integration-handler tests passed for loading, duplicate-click suppression, successful acknowledgement, provider rejection, unconfirmed success, network retry, retained answers, and stable retry reference. Browser end-to-end submission is being verified before the main homepage is enabled.
